@@ -1,0 +1,146 @@
+---
+title: "art-code-CHOYOA-03"
+author: "Graycen Mahon"
+date: "2023-06-07"
+output: html_document
+---
+
+## Loading in Packages:
+
+```{r}
+library(ggplot2)
+library(tibble)
+```
+
+## Exercise 1:
+
+```{r}
+mpg
+```
+
+```{r}
+mpg |>
+  # making the blank graph space
+  ggplot(aes(displ, hwy, colour = drv))  + 
+  # this line creates the box plot for the graph, and removes the legend from the plot. The size of the boxes are set to 2-
+  geom_boxplot(show.legend = FALSE, size = 20)+ 
+  # the next like adds anothe rboxplot, without a legend and making it outlines in orange (size 2.5).
+  geom_boxplot(show.legend = FALSE, size = 2.5, colour = "orange") + 
+  # coord polar makes the plot circular
+  coord_polar() + 
+  # theme void takes away the gridlines and plot details, other than the colors and shape I created. 
+  theme_void()
+
+```
+
+## Exercise 2:
+
+```{r}
+# create an object called polar art and attach a function to it, so you can alter and change the specifics of the art piece created without having to type all this code over and over again. in the function, mention the characteristics you would like to be alterable. 
+polar_art <- function(seed, n, palette) {
+  
+ # set the state of the random number generator which controls the size and number of values in the data frame used to make the art. 
+  set.seed(seed)
+  
+  # data frame containing random values for aesthetics we might want to use in the art below. setting the x and y axis intervals using the runif function. the shade and size will correspond with the value of n chosen for each plot. 
+  
+    dat <- tibble(
+    x0 = runif(n),
+    y0 = runif(n),
+    x1 = x0 + runif(n, min = -.2, max = .2),
+    y1 = y0 + runif(n, min = -.2, max = .2),
+    shade = runif(n), 
+    size = runif(n)
+  )
+  
+  # plot segments in various colors, using 
+  # polar coordinates and a gradient palette
+      dat |> 
+    ggplot(aes(
+      x = x0,
+      y = y0,
+      xend = x1,
+      yend = y1,
+      colour = shade,
+      size = size
+    )) +
+    geom_segment(show.legend = FALSE)  +
+    coord_polar() +
+    scale_y_continuous(expand = c(0, 0)) +
+    scale_x_continuous(expand = c(0, 0))  + 
+    scale_colour_gradientn(colours = palette) + 
+    scale_size(range = c(0, 10)) + 
+    theme_void()
+      
+# Lines 59-67 create a blank ggplot with the y and x axis set to equal intervals ending at 1.2
+# line 68 makes a segment plot without a legend, with blue data points scattered in a large rectangular clump in the center of the plot.
+# line 69: the coord polar function makes the plot circular
+# lines 70-72 change the color palatte and side of the data segments
+# line 74 takes away the grid lines of the plot as well as the axis values and titles. 
+}
+```
+
+## My creations:
+
+```{r}
+# this one is inspired by cotton candy
+polar_art(seed = 3, n = 200, palette = c("lightblue", "hotpink", "lightgreen"))
+# this next one is inspired by the earth
+polar_art(seed = 1, n = 500, palette = c("darkblue", "lightblue", "darkgreen"))
+# this last one is inspired by my bedroom
+polar_art(seed = 2, n = 600, palette = c("orange", "hotpink", "red", "lightblue"))
+```
+
+Creating my own function using the polar_art function
+
+```{r}
+polar_art_02 <- function(seed, n, palette) {
+  
+  # set the state of the random number generator which controls the size and number of values in the data frame used to make the art. 
+  set.seed(seed)
+  
+  # data frame containing random values for aesthetics we might want to use in the art below. setting the x and y axis intervals using the runif function. the shade and size will correspond with the value of n chosen for each plot. 
+  dat <- tibble(
+    x0 = runif(n),
+    y0 = runif(n),
+    x1 = x0 + runif(n, min = -10, max = 10),
+    y1 = y0 + runif(n, min = -3, max = 3),
+    shade = runif(n), 
+    size = runif(n)
+  )
+  
+  # plot segments in various colours, using 
+  # polar coordinates and a gradient palette
+  dat |> 
+    ggplot(aes(
+      x = x0,
+      y = y0,
+      xend = x1,
+      yend = y1,
+      colour = shade,
+      size = size
+    )) +
+    geom_segment(show.legend = FALSE) +
+    scale_y_continuous(expand = c(0, 0)) +
+    scale_x_continuous(expand = c(0, 0)) + 
+    scale_colour_gradientn(colours = palette) + 
+    scale_size(range = c(0, 10)) + 
+    theme_void()
+}
+
+# Lines 116 - 124 create a blank ggplot with the y and x axis set to equal intervals ending at 1.2
+# line 125 makes a segment plot without a legend, with blue data points scattered in a large rectangular clump in the center of the plot.
+# lines 126-129 change the color palatte and side of the data segments
+# line 130 takes away the grid lines of the plot as well as the axis values and titles. 
+
+```
+
+```{r}
+# This first piece is inspired by a campfire
+polar_art_02(seed = 1, n = 200, palette = c("red", "orange", "yellow"))
+# the second is inspired by a stack of redwood tree logs
+polar_art_02(seed = 2, n = 175, palette = c("tan", "brown", "black"))
+# This last one is inspired by confetti
+polar_art_02(seed = 3, n = 150, palette = c("red", "orange", "yellow", "green", "blue", "purple", "hotpink"))
+```
+

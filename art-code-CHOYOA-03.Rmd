@@ -5,14 +5,15 @@ date: "2023-06-07"
 output: html_document
 ---
 
-## Loading in Packages:
+## Task 1:
+# Loading in Packages:
 
 ```{r}
 library(ggplot2)
 library(tibble)
 ```
 
-## Exercise 1:
+# Exercise 1:
 
 ```{r}
 mpg
@@ -33,7 +34,7 @@ mpg |>
 
 ```
 
-## Exercise 2:
+# Exercise 2:
 
 ```{r}
 # create an object called polar art and attach a function to it, so you can alter and change the specifics of the art piece created without having to type all this code over and over again. in the function, mention the characteristics you would like to be alterable. 
@@ -80,7 +81,7 @@ polar_art <- function(seed, n, palette) {
 }
 ```
 
-## My creations:
+# My creations:
 
 ```{r}
 # this one is inspired by cotton candy
@@ -109,7 +110,7 @@ polar_art_02 <- function(seed, n, palette) {
     size = runif(n)
   )
   
-  # plot segments in various colours, using 
+  # plot segments in various colors, using 
   # polar coordinates and a gradient palette
   dat |> 
     ggplot(aes(
@@ -143,4 +144,320 @@ polar_art_02(seed = 2, n = 175, palette = c("tan", "brown", "black"))
 # This last one is inspired by confetti
 polar_art_02(seed = 3, n = 150, palette = c("red", "orange", "yellow", "green", "blue", "purple", "hotpink"))
 ```
+
+# Loading in more packages for Exercise 3:
+
+```{r}
+library(scales)
+library(ggthemes)
+```
+
+```{r}
+pal <- c("#e78b28", "#ffe28a", "#fe9a83", "#ccabd8", "#9ac7a9")
+# choose certain colors for your palatte (I got the hex codes off the internet)
+show_col(pal)
+# show the color palatte you are working with in a grid in the plot window
+palette_fn <- colorRampPalette(pal)
+# save a gradient palatte based on your color choices under palatee_fn
+palette_fn(100)
+# view 100 colors of your palatte!
+```
+
+```{r}
+image(
+  x = matrix(1:100, ncol = 1),
+  col = palette_fn(100),
+  useRaster = TRUE,
+  axes = FALSE
+)
+
+# line 167 creates a matrix of colors on a graph of 100 colors in distinct columns
+#line 168 blurs the color palatte together (like a gradient) and changes the colors within the graph to the palatte chosen in the code chunk above. 
+# lines 169-170 remove the axis and labels from the graph to make it a rectangle of the gradient created. 
+```
+
+# Exercise 3:
+
+```{r}
+sample_canva <- function(seed = NULL) {
+  if(!is.null(seed)) set.seed(seed)
+  sample(ggthemes::canva_palettes, 1)[[1]]
+}
+# line 170 creates a new function called simple_canva and sets the seed to NULL which ensures that the code is not reproducible and will change every time the chunk is ran
+# lines 180-181 calls on gg themes in order to pull colors from the canva palattes to create different color schemes each time the chunk is run. 
+
+sample_canva(seed = NULL) %>% 
+show_col()
+# calling on the sample canva function and using the show_col function to make each palatte show in the plots window (bottom right)
+```
+
+```{r}
+sample_named_colours <- function(seed, n = 4, palette) {
+  set.seed(seed)
+  sample(colours(distinct = FALSE))
+}
+# Lines 192-194: I made a new function called sample_named_colors and called upon the information seed, n, and palette. Then I set the seed value to to changed based on whatever each individual art piece deems it to be. Laslty I called on the colors function of r studio to set the palette sample. 
+sampled_named_colours(seed = NULL, n = 100, palette = colours) %>% 
+  show_col()
+```
+
+```{r trying-with-the-polar-art-funciton}
+polar_art(seed = 56, n = 100, palette = sample_named_colours(seed = 1))
+```
+
+```{r all-600-colors-ggthemes}
+unlist_sample_canva <- function(n, seed = NULL) {
+  if(!is.null(seed)) set.seed(seed)
+  unlist(ggthemes::canva_palettes)
+}
+```
+
+```{r trying-with-the-polar-art-function}
+polar_art(seed = 8, n = 100, palette = unlist_sample_canva(seed = 1))
+```
+
+# Exercise 4:
+
+```{r sample-functions-from-repo}
+sample_canva <- function(seed = NULL) {
+  if(!is.null(seed)) set.seed(seed)
+  sample(ggthemes::canva_palettes, 1)[[1]]
+}
+
+sample_data <- function(seed = NULL, n = 100){
+  if(!is.null(seed)) set.seed(seed)
+  dat <- tibble(
+    x0 = runif(n),
+    y0 = runif(n),
+    x1 = x0 + runif(n, min = -.2, max = .2),
+    y1 = y0 + runif(n, min = -.2, max = .2),
+    shade = runif(n), 
+    size = runif(n),
+    shape = factor(sample(0:22, size = n, replace = TRUE))
+  )
+}
+
+polar_styled_plot <- function(data = NULL, palette) {
+  ggplot(
+    data = data,
+    mapping = aes(
+      x = x0,
+      y = y0,
+      xend = x1,
+      yend = y1,
+      colour = shade,
+      size = size
+    )) + 
+    coord_polar(clip = "off") +
+    scale_y_continuous(
+      expand = c(0, 0),
+      limits = c(0, 1), 
+      oob = scales::oob_keep
+    ) +
+    scale_x_continuous(
+      expand = c(0, 0), 
+      limits = c(0, 1), 
+      oob = scales::oob_keep
+    ) + 
+    scale_colour_gradientn(colours = palette) + 
+    scale_size(range = c(0, 10)) + 
+    theme_void() + 
+    guides(
+      colour = guide_none(),
+      size = guide_none(),
+      fill = guide_none(),
+      shape = guide_none()
+    )
+}
+```
+
+```{r example-artwork}
+dat <- sample_data(n = 100, seed = 1) 
+pal <- sample_canva(seed = 1)
+
+polar_styled_plot(data = dat, palette = pal) + geom_segment()
+polar_styled_plot(data = dat, palette = pal) + geom_path()
+polar_styled_plot(data = dat, palette = pal) + geom_point()
+```
+
+```{r mutating-the-function-using-dplyr}
+dat2 <- sample_data(n = 350, seed = 7)
+dat3 <- sample_data(n = 666, seed = 12)
+# creating new objects called dat2 and dat3 in order to adjust different data frames we can use to change the shape, color or configuration
+
+polar_styled_plot(data = dat, palette = pal) + 
+  # set the data and palette to the objects made in the code chunk above
+  geom_point(data = dat2 |> mutate(size = size * 3)) + 
+  # using geom_point, call on dat2 and mutate the size of the element
+  geom_segment(data = dat3 |> mutate(size = size/200), 
+  # then call on geom_segment and use data 3, also adjusting the size and color of the element
+               colour = "hotpink")  + 
+  geom_jitter(data = dat3 |> mutate(size = size/25), 
+  # then call on geom_jitter again and use dat3, also adjusting the size and color of the element. I used a hex code to decide the color. 
+               colour = "#764de4")
+```
+
+```{r creating-my-own-plot}
+my_styled_plot <- function() {
+  
+}
+```
+
+```{r}
+my_styled_plot(data = NULL, palatte)
+```
+
+## Task 2:
+# Loading in packages 
+
+```{r}
+library(dplyr)
+library(purrr)
+library(tibble)
+library(ggplot2)
+library(ggthemes)
+library(ambient)
+```
+
+# Excersise 1: 
+
+```{r first-ambient-plot-mutate}
+sample_canva <- function(seed = NULL) {
+  if(!is.null(seed)) set.seed(seed)
+  sample(ggthemes::canva_palettes, 1)[[1]]
+}
+# lines 329 - 331 set the "window" of view for the image, I altered the original code to zoom out. 
+x_coords <- seq(from = -1, to = 2, length.out = 550)
+y_coords <- seq(from = -1, to = 2, length.out = 550)
+canvas <- long_grid(x = x_coords, y = y_coords) 
+# lines 334-336 alter the spacing, color and frequency of the art piece. I changed the first and third vlaues in order to change the size and color of the piece. 
+freq_spatial <- 25
+seed_spatial <- 100
+seed_palette <- 32
+
+# I just changed the generator function below in order to change the overall structure of the art. I kept the rest of the code the same. 
+dat <- canvas |> 
+  mutate(
+    paint = gen_waves(
+      x = x, 
+      y = y, 
+      frequency = freq_spatial, 
+      seed = seed_spatial
+    )
+  )
+# lines 349 - 358 adjust the shape and layout of the grid. It removes the legend, grid lines, axis labels and plot shading. 
+pic <- dat |>
+  ggplot(aes(x, y, fill = paint)) + 
+  geom_raster(show.legend = FALSE) +
+  theme_void() + 
+  coord_equal() +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  scale_fill_gradientn(
+    colours = sample_canva(seed_palette)
+  )
+# viewing the artwork
+plot(pic)
+```
+
+# Exercise 2:
+
+```{r make-noise-art-mutation}
+make_noise_art <- function(
+    generator = gen_worley, 
+# I changed the original code generator from perlin to worley in order to get a different shaped output.
+    frequency = 5, seed = 1500, 
+# i changed the frequency and seed in the lines above to alter the spacing, pixel concentration and positioning of the artwork. 
+    pixels = 5000, 
+# I also changed the original code to show more pixels, and therefore a wider view of the artwork and then in lines 375, I changed the color palatte used in the piece. I used a palatte generated by R studio and copied the hex codes. 
+    palette = c("#bfd8d2", "#fedcd2", "#df744a", "#dcb239")) {
+  
+  # define the grid
+  # lines 379-381 are used to set the size of the grid, I decided to expand it from 0 -> 1 to -1 -> 2 to make the image slightly larger. I also kept the fact that the x and y axis would have the same grid length, so the image would be a square. 
+  canvas <- long_grid(
+    x = seq(from = -1, to = 2, length.out = pixels),
+    y = seq(from = -1, to = 2, length.out = pixels)
+  ) 
+  
+  # use the generator to add paint
+  canvas <- canvas |>
+    mutate(
+      paint = generator(
+        x, y, 
+        frequency = frequency, 
+        seed = seed)
+    )
+# Lines 381-386 fill the screen with paint palatte from line 372 and set the seed and frequency equal to values in lines 370. Without the canvas object and using the generator to add paint, the artwork is just a dark screen with no dimension. 
+  
+  # use ggplot2 to draw the picture
+  art <- canvas |> 
+    ggplot(aes(x, y, fill = paint)) + 
+    geom_raster(show.legend = FALSE) +
+    theme_void() +
+    coord_equal() +
+    scale_x_continuous(expand = c(0, 0)) +
+    scale_y_continuous(expand = c(0, 0)) +
+    scale_fill_gradientn(colours = palette)
+  
+# lines 395-402 removed plot lines, the legend and the axis values and then uses the x and y scale function to set the color palatte to gradient so the colors come out "ombre". Line 402 sets the color palate to the one chosen in line 375 and makes the whole plot gradient. 
+  return(art)
+}
+
+```
+
+```{r artwork}
+make_noise_art(seed = 666)
+make_noise_art(seed = 1212)
+make_noise_art(seed = 5463)
+```
+
+2.2:
+I literally have no clue
+
+# Exercise 3:
+
+```{r creating-a-blank-canvas}
+blank_canvas <- long_grid(
+  x = seq(from = 0, to = 1, length.out = 2000),
+  y = seq(from = 0, to = 1, length.out = 2000)
+) 
+```
+
+```{r}
+sample_canva <- function(seed = NULL) {
+  if(!is.null(seed)) set.seed(seed)
+  sample(ggthemes::canva_palettes, 1)[[1]]
+}
+
+blank_canvas <- long_grid(
+  x = seq(from = 0, to = 1, length.out = 2000),
+  y = seq(from = 0, to = 1, length.out = 2000)
+) 
+
+plot_painted_canvas <- function(canvas, palette = NULL) {
+  if(is.null(palette)) {
+    palette <- c("#e5ddc8","#01949a","#004369","#db1f48")
+  }
+  canvas |> 
+    ggplot(aes(x, y, fill = paint)) + 
+    geom_raster(show.legend = FALSE) +
+    theme_void() +
+    coord_equal() +
+    scale_x_continuous(expand = c(0, 0)) +
+    scale_y_continuous(expand = c(0, 0)) +
+    scale_fill_gradientn(colours = palette)
+}
+
+# your code here! add to the blank canvas :)
+blank_canvas |> 
+  mutate(
+    lf_noise = gen_simplex(x, y, frequency = 6),
+    mf_noise = gen_simplex(x, y, frequency = 12),
+    hf_noise = gen_simplex(x, y, frequency = 85),
+    gate = gen_simplex(x, y, frequency = 10) |> normalise(),
+    paint = lf_noise +
+      (2 + mf_noise) * (gate >= .2 & gate < .8) +
+      (2 + hf_noise) * (gate >= .1)
+  ) |>
+  plot_painted_canvas(palette = sample_canva(seed = 3))
 

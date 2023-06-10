@@ -412,16 +412,49 @@ make_noise_art(seed = 5463)
 ```
 
 2.2:
-I literally have no clue
+I literally have no clue how to ensure each image is saved individually. 
 
 # Exercise 3:
 
 ```{r creating-a-blank-canvas}
+sample_canva <- function(seed = NULL) {
+  if(!is.null(seed)) set.seed(seed)
+  sample(ggthemes::canva_palettes, 1)[[1]]
+}
+
 blank_canvas <- long_grid(
   x = seq(from = 0, to = 1, length.out = 2000),
   y = seq(from = 0, to = 1, length.out = 2000)
 ) 
+
+plot_painted_canvas <- function(canvas, palette = NULL) {
+  if(is.null(palette)) {
+    palette <- c("#e5ddc8","#01949a","#004369","#db1f48")
+  }
+  canvas |> 
+    ggplot(aes(x, y, fill = paint)) + 
+    geom_raster(show.legend = FALSE) +
+    theme_void() +
+    coord_equal() +
+    scale_x_continuous(expand = c(0, 0)) +
+    scale_y_continuous(expand = c(0, 0)) +
+    scale_fill_gradientn(colours = palette)
+}
+
+# your code here! add to the blank canvas
+blank_canvas |> 
+  mutate(
+    lf_noise = gen_waves(x, y, frequency = 6),
+    mf_noise = gen_spheres(x, y, frequency = 12),
+    hf_noise = gen_perlin(x, y, frequency = 85),
+    gate = gen_simplex(x, y, frequency = 10) |> normalise(),
+    paint = lf_noise + mf_noise + hf_noise
+  ) |>
+  plot_painted_canvas(palette = sample_canva(seed = 12))
+
 ```
+
+# Exercise 4:
 
 ```{r}
 sample_canva <- function(seed = NULL) {
@@ -448,16 +481,276 @@ plot_painted_canvas <- function(canvas, palette = NULL) {
     scale_fill_gradientn(colours = palette)
 }
 
-# your code here! add to the blank canvas :)
-blank_canvas |> 
+fractal_art <- function(fractal, generator, palette = NULL, ...) {
+  blank_canvas |>
+    mutate(
+      paint = fracture(
+        noise = generator,
+        fractal = fractal,
+        x = x, 
+        y = y, 
+        ...
+      )
+    ) |>
+    plot_painted_canvas(palette = palette)
+}
+```
+
+
+```{r}
+gf <- function(x) x * 0.1
+new_gain <- function(x) x * 0.2
+new_frequency <- function(x) x * 0.5
+fractal_art(fractal = ridged, 
+            generator = gen_simplex, 
+            seed = 12, 
+            octaves = 3, 
+            gain = gf, 
+            frequency = new_frequency)
+
+# ambient artwork
+x_coords <- seq(from = 0, to = 2, length.out = 950)
+y_coords <- seq(from = 0, to = 2, length.out = 950)
+```
+
+
+```{r}
+canvas <- long_grid(x = x_coords, y = y_coords) 
+
+gen_worley(x = 1:5, y = 1, frequency = .001, seed = 1)
+gen_worley(x = 1:5, y = 1, frequency = .5, seed = 1)
+
+canvas <- canvas |> 
+  mutate(paint = gen_worley(x, y, frequency = 10, seed = 1234))
+canvas
+
+art <- ggplot(canvas, aes(x, y, fill = paint)) + 
+  geom_raster(show.legend = FALSE) 
+
+art + 
+  theme_void() +
+  coord_equal() +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  scale_fill_gradientn(colours = palette())
+
+make_noise_art <- function(
+    generator = gen_worley, 
+    frequency = 43, 
+    seed = 5463,
+    pixels = 3000,
+    palette = palette
+) {
+  
+  # define the grid
+  canvas <- long_grid(
+    x = seq(from = -1, to = 1, length.out = 395),
+    y = seq(from = -1, to = 1, length.out = 395)
+  ) 
+  
+  # use the generator to add paint
+  canvas <- canvas |>
+    mutate(
+      paint = generator(
+        x, y, 
+        frequency = frequency, 
+        seed = seed, 
+        palette = palette
+      )
+    )
+  
+  # use ggplot2 to draw the picture
+  art <- canvas |> 
+    ggplot(aes(x, y, fill = palette)) + 
+    geom_raster(show.legend = FALSE) +
+    theme_void() +
+    coord_equal() +
+    scale_x_continuous(expand = c(0, 0)) +
+    scale_y_continuous(expand = c(0, 0)) +
+    scale_fill_gradientn(colours = palette)
+  
+  
+  
+  show_col(make_noise_art)
+}
+```
+
+```{r}
+fbm <- function(base, new, strength, ...) {
+  base + new * strength
+}
+
+blank_canvas |>
   mutate(
-    lf_noise = gen_simplex(x, y, frequency = 6),
-    mf_noise = gen_simplex(x, y, frequency = 12),
-    hf_noise = gen_simplex(x, y, frequency = 85),
+    lf_noise = gen_waves(x, y, frequency = 33),
+    mf_noise = gen_worley(x, y, frequency = 20),
+    hf_noise = gen_waves(x, y, frequency = 99),
     gate = gen_simplex(x, y, frequency = 10) |> normalise(),
     paint = lf_noise +
-      (2 + mf_noise) * (gate >= .2 & gate < .8) +
-      (2 + hf_noise) * (gate >= .1)
-  ) |>
-  plot_painted_canvas(palette = sample_canva(seed = 3))
+      (1 + mf_noise) * (gate >= .1 & gate < .6) +
+      (1 + hf_noise) * (gate >= .05)
+  )
 
+fractal_art(fbm, gen_checkerboard, seed = 1, octaves = 1)
+fractal_art(fbm, gen_checkerboard, seed = 1, octaves = 2)
+fractal_art(fbm, gen_checkerboard, seed = 1, octaves = 20)
+
+blank_canvas |>
+  mutate(paint = gen_worley(x, y, seed = 6)) |>
+  plot_painted_canvas()
+```
+
+Note: 
+I have been working on this Task for days. I have no idea what the frick is going on so I'm just going to move on because I honestly can't keep doing this. I tried to go through one line at a time but my computer is taking 10 minutes to load each time I run the code chunk and I do not have that kind of time with all my other finals and needing to start this final. 
+
+## Exercise 5:
+
+```{r}
+curl_data <- function(
+    data, 
+    iterations = 50,
+    step_size = .001,
+    ...
+) {
+  
+  update <- function(current_state, iteration, ...) {
+    curl <- curl_noise(
+      x = current_state$x, 
+      y = current_state$y,
+      generator = fracture,
+      ...
+    )
+    next_state <- current_state |>
+      mutate(
+        x = x + curl$x * step_size,
+        y = y + curl$y * step_size,
+        time = time + 1
+      )
+    return(next_state)
+  }
+  
+  data |> 
+    mutate(id = row_number(), time = 1) |>
+    accumulate(1:iterations, update, .init = _, ...) |>
+    bind_rows()
+}
+
+curl_art <- function(...) {
+  curl_data(...) |> 
+    ggplot(aes(x, y, group = id)) + 
+    geom_path() +
+    theme_void() + 
+    coord_equal() 
+}
+
+smol_grid <- long_grid(x = 1:20, y = 1:20)
+
+pic <- smol_grid |>
+  mutate(x = normalise(x), y = normalise(y)) |>
+  curl_art(noise = gen_simplex, fractal = fbm, octaves = 4, freq_init = .5)
+
+tic()
+ggsave(
+  filename = here("output", "curl-art-1.png"), 
+  plot = pic,
+  width = 2000,
+  height = 2000,
+  units = "px",
+  dpi = 300,
+  bg = "white"
+)
+toc()
+```
+
+```{r}
+curl_data <- function(
+    data, 
+    iterations = 50,
+    step_size = .001,
+    ...
+) {
+  
+  update <- function(current_state, iteration, ...) {
+    curl <- curl_noise(
+      x = current_state$x, 
+      y = current_state$y,
+      generator = fracture,
+      ...
+    )
+    next_state <- current_state |>
+      mutate(
+        x = x + curl$x * step_size,
+        y = y + curl$y * step_size,
+        time = time + 1
+      )
+    return(next_state)
+  }
+  
+  data |> 
+    mutate(id = row_number(), time = 1) |>
+    accumulate(1:iterations, update, .init = _, ...) |>
+    bind_rows()
+}
+
+curl_art <- function(...) {
+  curl_data(...) |> 
+    ggplot(aes(x, y, group = id)) + 
+    geom_path() +
+    theme_void() + 
+    coord_equal() 
+}
+
+custom_curl_data <- function(data) {
+  curl_data(
+    data = data,
+    iterations = 80, 
+    octaves = 10,
+    fractal = ridged,
+    noise = gen_cubic,
+    freq_init = 1,
+    frequency = ~ . * 1.2,
+    gain_init = 1,
+    gain = ~ . * .9,
+    seed = 1
+  )
+}
+
+circle <- function(n = 100) {
+  tibble(
+    theta = 2 * pi * (1:n) / n, 
+    x = cos(theta),
+    y = sin(theta)
+  )
+}
+
+dat1 <- circle(5000) |> 
+  custom_curl_data()
+
+dat2 <- circle(5000) |>
+  mutate(x = x * .99, y = y * .99) |>
+  custom_curl_data()
+
+pic <- ggplot(mapping = aes(x, y, group = time)) +
+  geom_polygon(data = dat1, fill = "#ffffff10") +
+  geom_polygon(data = dat2, fill = "#22222205") +
+  theme_void() +
+  coord_equal()
+
+tic()
+ggsave(
+  filename = here("output", "curl-art-2.png"), 
+  plot = pic,
+  width = 2000,
+  height = 2000,
+  units = "px",
+  dpi = 300,
+  bg = "white"
+)
+toc()
+```
+
+I literally don't know what's going on I am so confused
+
+## Task 3:
+
+Honestly I can't stop crying and I really can't do this I'm just going to take a poor grade and move on. This is supposed to be a "fun" assignment, but it's given me more anxiety and frustration than any other class & assignment I have ever done in my life. 

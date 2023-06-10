@@ -616,6 +616,9 @@ I have been working on this Task for days. I have no idea what the frick is goin
 ## Exercise 5:
 
 ```{r}
+library(tictoc)
+library(here)
+
 curl_data <- function(
     data, 
     iterations = 50,
@@ -660,6 +663,7 @@ pic <- smol_grid |>
   curl_art(noise = gen_simplex, fractal = fbm, octaves = 4, freq_init = .5)
 
 tic()
+
 ggsave(
   filename = here("output", "curl-art-1.png"), 
   plot = pic,

@@ -191,13 +191,15 @@ show_col()
 # calling on the sample canva function and using the show_col function to make each palatte show in the plots window (bottom right)
 ```
 
+
+
 ```{r}
 sample_named_colours <- function(seed, n = 4, palette) {
   set.seed(seed)
   sample(colours(distinct = FALSE))
 }
-# Lines 192-194: I made a new function called sample_named_colors and called upon the information seed, n, and palette. Then I set the seed value to to changed based on whatever each individual art piece deems it to be. Laslty I called on the colors function of r studio to set the palette sample. 
-sampled_named_colours(seed = NULL, n = 100, palette = colours) %>% 
+# Lines 192-194: I made a new function called sample_named_colors and called upon the information seed, n, and palette. Then I set the seed value to to changed based on whatever each individual art piece deems it to be. Lastly I called on the colors function of r studio to set the palette sample. 
+sample_named_colours(seed = NULL, n = 100, palette = colours) %>% 
   show_col()
 ```
 
@@ -280,31 +282,39 @@ polar_styled_plot(data = dat, palette = pal) + geom_path()
 polar_styled_plot(data = dat, palette = pal) + geom_point()
 ```
 
+
+
 ```{r mutating-the-function-using-dplyr}
+dat <- sample_data(n = 2000, seed = 123)
+
+polar_styled_plot(palette = sample_canva(seed = 456)) + 
+  geom_segment(data = dat) + 
+  geom_segment(data = dat) +
+  geom_segment(data = dat)
+
 dat2 <- sample_data(n = 350, seed = 7)
 dat3 <- sample_data(n = 666, seed = 12)
 # creating new objects called dat2 and dat3 in order to adjust different data frames we can use to change the shape, color or configuration
+```
 
+
+```{r mutating-the-function-using-dplyr-2}
 polar_styled_plot(data = dat, palette = pal) + 
   # set the data and palette to the objects made in the code chunk above
-  geom_point(data = dat2 |> mutate(size = size * 3)) + 
+  geom_point(data = dat2) + 
   # using geom_point, call on dat2 and mutate the size of the element
-  geom_segment(data = dat3 |> mutate(size = size/200), 
+  geom_segment(data = dat3)
   # then call on geom_segment and use data 3, also adjusting the size and color of the element
-               colour = "hotpink")  + 
-  geom_jitter(data = dat3 |> mutate(size = size/25), 
+               colour = "hotpink"  + 
+  geom_jitter(data = dat3)
   # then call on geom_jitter again and use dat3, also adjusting the size and color of the element. I used a hex code to decide the color. 
-               colour = "#764de4")
+               colour = "#764de4"
 ```
 
 ```{r creating-my-own-plot}
 my_styled_plot <- function() {
   
 }
-```
-
-```{r}
-my_styled_plot(data = NULL, palatte)
 ```
 
 ## Task 2:
